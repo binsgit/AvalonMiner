@@ -72,6 +72,7 @@ void MainWindow::updateInfo(minerInfo miner)
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(miner.active[i]));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(miner.lastCommit[i]));
         ui->tableWidget->item(i,1)->setTextAlignment(Qt::AlignCenter);
+        ui->tableWidget->item(i,2)->setTextAlignment(Qt::AlignCenter);
     }
 }
 

@@ -176,9 +176,17 @@ void RpcThread::parsePools()
                     QString tmp = para;
                     miner.active[i] = tmp.replace("Stratum Active=", "");
                 }
-                if (para.contains(QRegExp("^Last Valid Work="))) {
+                if (para.contains(QRegExp("^Last Share Time="))) {
                     QString tmp = para;
-                    miner.lastCommit[i] = tmp.replace("Last Valid Work=", "");
+                    bool ok;
+                    uint value = tmp.replace("Last Share Time=", "").toUInt(&ok);
+                    if (ok && (value != 0)) {
+                        qDebug() << para;
+                        miner.lastCommit[i] = QDateTime::fromTime_t(value).toString("HH:mm:ss");
+                    } else {
+                        qDebug() << "convert time failed";
+                        miner.lastCommit[i] = QString("");
+                    }
                 }
             }
         }
@@ -186,4 +194,5 @@ void RpcThread::parsePools()
         qDebug() << "active" + QString::number(i) + ":" + miner.active[i];
         qDebug() << "lastCommit" + QString::number(i) + ":" + miner.lastCommit[i];
     }
+
 }
