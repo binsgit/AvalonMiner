@@ -56,9 +56,9 @@
      <widget class="QLabel" name="label_hashrate">
       <property name="geometry">
        <rect>
-        <x>168</x>
+        <x>149</x>
         <y>20</y>
-        <width>152</width>
+        <width>191</width>
         <height>23</height>
        </rect>
       </property>
@@ -79,9 +79,9 @@
      <widget class="QLabel" name="label_pool">
       <property name="geometry">
        <rect>
-        <x>168</x>
+        <x>149</x>
         <y>190</y>
-        <width>152</width>
+        <width>191</width>
         <height>23</height>
        </rect>
       </property>
