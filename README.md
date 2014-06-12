@@ -16,4 +16,5 @@ Advanced usage:
 
  * You can update avalon.ini file manually while AvalonMiner.exe is not running
  * "Parameters" in avalon.ini is a QStringList
+ * log of bfgminer is saved in %AVALON_MINER_PATH%\avalon.log
 
