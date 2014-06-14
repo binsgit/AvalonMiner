@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
     QObject::connect(&bfg, SIGNAL(started()), &rpc, SLOT(request()));
     QObject::connect(&bfg, SIGNAL(finished(int,QProcess::ExitStatus)), &rpc, SLOT(stop()));
     QObject::connect(&rpc, SIGNAL(newInfo(minerInfo)), &w, SLOT(updateInfo(minerInfo)));
+    QObject::connect(&rpc, SIGNAL(rpcConnected()), &w, SLOT(rpcConnected()));
     minerConfig.load();
     w.show();
 

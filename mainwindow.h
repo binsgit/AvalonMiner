@@ -26,6 +26,7 @@ public slots:
     void processStarted();
     void processFinished();
     void updateInfo(minerInfo);
+    void rpcConnected();
 
 private:
     Ui::MainWindow *ui;

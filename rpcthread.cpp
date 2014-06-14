@@ -16,7 +16,7 @@ RpcThread::~RpcThread()
 
 bool RpcThread::callApi(const char *command)
 {
-    qDebug() << "command : " + QString(command);
+    qDebug() << "Call bfgminer RPC with command : " + QString(command);
     const int Timeout = 300; //1 * 1000;
 
     QTcpSocket socket;
@@ -27,13 +27,12 @@ bool RpcThread::callApi(const char *command)
 //        emit error(socket.error(), socket.errorString());
         return false;
     }
-    qDebug() << "connected";
+    emit rpcConnected();
 
     if (socket.write(command) != QString(command).length()) {
         qDebug() << "socket write error.";
         return false;
     }
-    qDebug() << "send";
 
     while (socket.bytesAvailable() < (int)sizeof(quint16)) {
         if (!socket.waitForReadyRead(Timeout)) {
@@ -42,7 +41,6 @@ bool RpcThread::callApi(const char *command)
             return false;
         }
     }
-    qDebug() << "read";
     mutex.lock();
     buffer = socket.readAll();
     mutex.unlock();
@@ -53,10 +51,9 @@ bool RpcThread::callApi(const char *command)
 
 void RpcThread::run()
 {
-    qDebug() << "run";
-    miner.hashrate_20s = "0.000";
-    miner.hashrate_av = "0.000";
-    miner.hashrate_cur = "0.000";
+    miner.hashrate_20s = "0";
+    miner.hashrate_av = "0";
+    miner.hashrate_cur = "0";
 
     for (int i = 0; i < 3; i ++) {
         miner.poolUrl[i] = QString("");
@@ -65,7 +62,6 @@ void RpcThread::run()
     }
 
     while (!quit) {
-        qDebug () << "while";
         if (callApi("summary")) {
 //            qDebug() << QDateTime::currentDateTime().toString(Qt::ISODate) + "\n" + buffer + "\n";
             parseSummary();
@@ -93,8 +89,6 @@ void RpcThread::run()
 
 void RpcThread::request()
 {
-    qDebug() << "request";
-
     mutex.lock();
     quit = false;
     mutex.unlock();
@@ -108,8 +102,6 @@ void RpcThread::request()
 
 void RpcThread::stop()
 {
-    qDebug() << "stop";
-
     mutex.lock();
     quit = true;
     mutex.unlock();
@@ -122,77 +114,152 @@ void RpcThread::stop()
 //static const char COMMA = ',';
 //static const char EQ = '=';
 
-void RpcThread::parseSummary()
+QString RpcThread::getBfgValue(const char *str)
+{
+    return getBfgValue(QString(str));
+}
+
+/* "str" should be sth. like "MHS av", "MHS 20s", etc. */
+QString RpcThread::getBfgValue(const QString &str)
 {
     QStringList eachSeparator = buffer.split("|");
 
     foreach (const QString &separator, eachSeparator) {
         QStringList comma = separator.split(",");
         foreach (const QString &para, comma) {
-            if (para.contains("MHS av=")) {
+            if (para.contains(QRegExp("^" + str + "="))) {
                 QString tmp = para;
-                bool ok;
-                double value = tmp.replace("MHS av=", "").toDouble(&ok);
-                if (ok) {
-                    qDebug() << para;
-                    miner.hashrate_av = QString::number(value / 1000.0, 'f', 3);
-                } else {
-                    qDebug() << "convert av failed";
-                    miner.hashrate_av = QString("0.000");
-                }
-            }
-            if (para.contains("MHS 20s=")) {
-                QString tmp = para;
-                bool ok;
-                double value = tmp.replace("MHS 20s=", "").toDouble(&ok);
-                if (ok) {
-                    qDebug() << para;
-                    miner.hashrate_20s = QString::number(value / 1000.0, 'f', 3);
-                } else {
-                    qDebug() << "convert 20s failed";
-                    miner.hashrate_20s = QString("0.000");
-                }
+                return tmp.replace(str + "=", "");
             }
         }
     }
+
+    return QString("");
+}
+
+QString RpcThread::getBfgValue(const char *first, const char *second)
+{
+    return getBfgValue(QString(first), QString(second));
+}
+
+QString RpcThread::getBfgValue(const QString &first, const char *second)
+{
+    return getBfgValue(first, QString(second));
+}
+
+QString RpcThread::getBfgValue(const char *first, const QString &second)
+{
+    return getBfgValue(QString(first), second);
+}
+
+/*
+ * "first" should be string like "POOL=0", "STATUS=S", etc.
+ * "second" should be a string to get value, such as "URL", "Stratum Active", etc.
+ */
+QString RpcThread::getBfgValue(const QString &first, const QString &second)
+{
+    QStringList eachSeparator = buffer.split("|");
+
+    foreach (const QString &separator, eachSeparator) {
+        if (!separator.contains(QRegExp(QString("^" + first))))
+            continue;
+        QStringList comma = separator.split(",");
+        foreach (const QString &para, comma) {
+            if (para.contains(QRegExp("^" + second + "="))) {
+                QString tmp = para;
+                return tmp.replace(second + "=", "");
+            }
+        }
+    }
+    return QString("");
+}
+
+void RpcThread::parseSummary()
+{
+    mutex.lock();
+    QString MHS_av = getBfgValue("MHS av");
+    QString MHS_20s = getBfgValue("MHS 20s");
+    mutex.unlock();
+
+    bool ok;
+    double value = MHS_av.toDouble(&ok);
+    if (ok) {
+        miner.hashrate_av = QString::number(value / 1000.0, 'f', 3);
+    } else {
+        qDebug() << "GHS av = 0 [convert av failed]";
+        miner.hashrate_av = QString("0");
+    }
+//    qDebug() << "GHS av = " + miner.hashrate_av;
+
+    value = MHS_20s.toDouble(&ok);
+    if (ok) {
+        miner.hashrate_20s = QString::number(value / 1000., 'f', 3);
+    } else {
+        qDebug() << "GHS av = 0 [convert 20s failed]";
+        miner.hashrate_20s = QString("0");
+    }
+//    qDebug() << "GHS 20s = " + miner.hashrate_20s;
+
+    /* MHS Cur = Diff1 Work * (Difficulty Accepted/(Difficulty Accepted+Difficulty Rejected+Difficulty Stale)*60/(Device Elapsed)*71582788/(1000000) */
+    mutex.lock();
+    QString Diff1_Work = getBfgValue("Diff1 Work");
+    QString Difficulty_Accepted = getBfgValue("Difficulty Accepted");
+    QString Difficulty_Rejected = getBfgValue("Difficulty Rejected");
+    QString Difficulty_Stale = getBfgValue("Difficulty Stale");
+    QString Elapsed = getBfgValue("Elapsed");
+    mutex.unlock();
+//    qDebug() << "Diff1_Work=" + Diff1_Work;
+//    qDebug() << "Difficulty_Accepted=" + Difficulty_Accepted;
+//    qDebug() << "Difficulty_Rejected=" + Difficulty_Rejected;
+//    qDebug() << "Difficulty_Stale=" + Difficulty_Stale;
+//    qDebug() << "Elapsed=" + Elapsed;
+    if (Diff1_Work.isEmpty() || Difficulty_Accepted.isEmpty() || Difficulty_Rejected.isEmpty() || Difficulty_Stale.isEmpty() || Elapsed.isEmpty()) {
+        qDebug() << "GHS cur = 0 [String for CUR is empty]";
+        miner.hashrate_cur = QString("0");
+        return;
+    }
+    bool ok_Diff1_Work, ok_Difficulty_Accepted, ok_Difficulty_Rejected, ok_Difficulty_Stale, ok_Elapsed;
+    double val_Diff1_Work = Diff1_Work.toDouble(&ok_Diff1_Work);
+    double val_Difficulty_Accepted = Difficulty_Accepted.toDouble(&ok_Difficulty_Accepted);
+    double val_Difficulty_Rejected = Difficulty_Rejected.toDouble(&ok_Difficulty_Rejected);
+    double val_Difficulty_Stale = Difficulty_Stale.toDouble(&ok_Difficulty_Stale);
+    double val_Elapsed = Elapsed.toDouble(&ok_Elapsed);
+    if (!(ok_Diff1_Work && ok_Difficulty_Accepted && ok_Difficulty_Rejected && ok_Difficulty_Stale && ok_Elapsed)) {
+        qDebug() << "GHS cur = 0 [Convert vale for CUR failed]";
+        miner.hashrate_cur = QString("0");
+        return;
+    }
+    if (((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0) || (val_Elapsed == 0)) {
+        qDebug() << "GHS cur = 0 [Divided by ZERO]";
+        miner.hashrate_cur = QString("0");
+        return;
+    }
+    value = val_Diff1_Work / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) * 60 / val_Elapsed * 71582788 / 1000000;
+    miner.hashrate_cur = QString::number(value, 'f', 3);
+//    qDebug() << "GHS cur = " + miner.hashrate_cur;
 }
 
 void RpcThread::parsePools()
 {
-    QStringList eachSeparator = buffer.split("|");
-
     for (int i = 0; i < 3; i ++) {
-        foreach (const QString &separator, eachSeparator) {
-            if (!separator.contains(QRegExp(QString("^POOL=%1").arg(QString::number(i)))))
-                continue;
-            qDebug() << "Pool number: " + QString::number(i);
-            QStringList comma = separator.split(",");
-            foreach (const QString &para, comma) {
-                if (para.contains(QRegExp("^URL="))) {
-                    QString tmp = para;
-                    miner.poolUrl[i] = tmp.replace("URL=", "");
-                }
-                if (para.contains(QRegExp("^Stratum Active="))) {
-                    QString tmp = para;
-                    miner.active[i] = tmp.replace("Stratum Active=", "");
-                }
-                if (para.contains(QRegExp("^Last Share Time="))) {
-                    QString tmp = para;
-                    bool ok;
-                    uint value = tmp.replace("Last Share Time=", "").toUInt(&ok);
-                    if (ok && (value != 0)) {
-                        qDebug() << para;
-                        miner.lastCommit[i] = QDateTime::fromTime_t(value).toString("HH:mm:ss");
-                    } else {
-                        qDebug() << "convert time failed";
-                        miner.lastCommit[i] = QString("");
-                    }
-                }
-            }
-        }
-        qDebug() << "url" + QString::number(i) + ":" + miner.poolUrl[i];
-        qDebug() << "active" + QString::number(i) + ":" + miner.active[i];
-        qDebug() << "lastCommit" + QString::number(i) + ":" + miner.lastCommit[i];
-    }
 
+        mutex.lock();
+        miner.poolUrl[i] = getBfgValue(QString("POOL=%1").arg(QString::number(i)), "URL");
+        miner.active[i] = getBfgValue(QString("POOL=%1").arg(QString::number(i)), "Stratum Active");
+        QString Last_Share_Time = getBfgValue(QString("POOL=%1").arg(QString::number(i)), "Last Share Time");
+//        QString Last_Share_Time = getBfgValue(QString("STATUS=S"), "When");  /* For Debug Only */
+        mutex.unlock();
+        bool ok;
+        uint value = Last_Share_Time.toUInt(&ok);
+        if (ok && (value != 0)) {
+            miner.lastCommit[i] = QDateTime::fromTime_t(value).toString("HH:mm:ss");
+        } else {
+            qDebug() << "Last Commit =  [convert time failed]";
+            miner.lastCommit[i] = QString("");
+        }
+
+//        qDebug() << "url" + QString::number(i) + ":" + miner.poolUrl[i];
+//        qDebug() << "active" + QString::number(i) + ":" + miner.active[i];
+//        qDebug() << "lastCommit" + QString::number(i) + ":" + miner.lastCommit[i];
+    }
 }

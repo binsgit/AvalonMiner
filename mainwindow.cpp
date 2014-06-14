@@ -41,11 +41,10 @@ void MainWindow::runClicked()
 void MainWindow::processStarted()
 {
     processStatus = true;
-    ui->label_status->setText("MINING");
+    ui->label_status->setText("PREPARING");
     ui->graphicsView_status->setStyleSheet("background-image: url(:/images/workingbg.png)");
     ui->pushButton_start->setText("Stop Mining");
     ui->pushButton_save->setDisabled(true);
-
 }
 
 void MainWindow::processFinished()
@@ -56,9 +55,14 @@ void MainWindow::processFinished()
     ui->pushButton_start->setText("Start Mining");
     ui->pushButton_save->setEnabled(true);
 
-    ui->label_20s->setText("0.000 Gh/s");
-    ui->label_av->setText("0.000 Gh/s");
-    ui->label_cur->setText("0.000 Gh/s");
+    ui->label_20s->setText("0 Gh/s");
+    ui->label_av->setText("0 Gh/s");
+    ui->label_cur->setText("0 Gh/s");
+    for (int i = 0; i < 3; i ++) {
+        ui->tableWidget->setItem(i, 0, new QTableWidgetItem(""));
+        ui->tableWidget->setItem(i, 1, new QTableWidgetItem(""));
+        ui->tableWidget->setItem(i, 2, new QTableWidgetItem(""));
+    }
 }
 
 void MainWindow::updateInfo(minerInfo miner)
@@ -74,6 +78,11 @@ void MainWindow::updateInfo(minerInfo miner)
         ui->tableWidget->item(i,1)->setTextAlignment(Qt::AlignCenter);
         ui->tableWidget->item(i,2)->setTextAlignment(Qt::AlignCenter);
     }
+}
+
+void MainWindow::rpcConnected()
+{
+    ui->label_status->setText("MINING");
 }
 
 void MainWindow::saveClicked()

@@ -16,7 +16,8 @@ public:
     void run();
 
 signals:
-    void newInfo(const minerInfo &miner);
+    void rpcConnected();
+    void newInfo(const minerInfo &);
 //    void error(int socketError, const QString &message);
 
 public slots:
@@ -31,9 +32,15 @@ private:
     QWaitCondition cond;
     QString buffer;
     minerInfo miner;
-    bool callApi(const char *command);
+    bool callApi(const char *);
     void parseSummary();
     void parsePools();
+    QString getBfgValue(const char *);
+    QString getBfgValue(const QString &);
+    QString getBfgValue(const char *, const char *);
+    QString getBfgValue(const QString &, const char *);
+    QString getBfgValue(const char *, const QString &);
+    QString getBfgValue(const QString &, const QString &);
 };
 
 #endif // RPCTHREAD_H
