@@ -234,7 +234,7 @@ void RpcThread::parseSummary()
         miner.hashrate_cur = QString("0");
         return;
     }
-    value = val_Diff1_Work / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) * 60 / val_Elapsed * 71582788 / 1000000;
+    value = val_Diff1_Work / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) * 60 / val_Elapsed * 71582788 / 1000000 / 1000;
     miner.hashrate_cur = QString::number(value, 'f', 3);
 //    qDebug() << "GHS cur = " + miner.hashrate_cur;
 }
