@@ -30,6 +30,7 @@
   </property>
   <property name="font">
    <font>
+    <family>Arial</family>
     <pointsize>10</pointsize>
    </font>
   </property>
@@ -204,6 +205,9 @@
         <weight>75</weight>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
       </property>
       <property name="text">
        <string>Start Mining</string>
@@ -397,6 +401,9 @@
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="2" column="1">
        <widget class="QSpinBox" name="spinBox_port1">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>
@@ -422,7 +429,11 @@
        </spacer>
       </item>
       <item row="13" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_name3"/>
+       <widget class="QLineEdit" name="lineEdit_name3">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="12" column="0">
        <widget class="QLabel" name="label_port3">
@@ -432,7 +443,11 @@
        </widget>
       </item>
       <item row="14" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_pass3"/>
+       <widget class="QLineEdit" name="lineEdit_pass3">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="7" column="0">
        <widget class="QLabel" name="label_port2">
@@ -552,8 +567,11 @@
           <bold>true</bold>
          </font>
         </property>
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
         <property name="text">
-         <string>Save</string>
+         <string>  Save  </string>
         </property>
        </widget>
       </item>
@@ -571,25 +589,53 @@
        </spacer>
       </item>
       <item row="11" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_url3"/>
+       <widget class="QLineEdit" name="lineEdit_url3">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="9" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_pass2"/>
+       <widget class="QLineEdit" name="lineEdit_pass2">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="8" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_name2"/>
+       <widget class="QLineEdit" name="lineEdit_name2">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="6" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_url2"/>
+       <widget class="QLineEdit" name="lineEdit_url2">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="4" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_pass1"/>
+       <widget class="QLineEdit" name="lineEdit_pass1">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="3" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_name1"/>
+       <widget class="QLineEdit" name="lineEdit_name1">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="1" column="1" colspan="4">
-       <widget class="QLineEdit" name="lineEdit_url1"/>
+       <widget class="QLineEdit" name="lineEdit_url1">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="label_info1">
@@ -632,6 +678,9 @@
       </item>
       <item row="7" column="1">
        <widget class="QSpinBox" name="spinBox_port2">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>
@@ -645,6 +694,9 @@
       </item>
       <item row="12" column="1">
        <widget class="QSpinBox" name="spinBox_port3">
+        <property name="styleSheet">
+         <string notr="true">border:2px groove gray;border-radius:6px;padding:2px 2px;</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>
@@ -657,6 +709,24 @@
        </widget>
       </item>
      </layout>
+    </widget>
+    <widget class="QWidget" name="tab_graphics">
+     <attribute name="title">
+      <string>Hashrate</string>
+     </attribute>
+     <widget class="QWidget" name="widget_cur" native="true">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>10</y>
+        <width>471</width>
+        <height>441</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QGraphicsView" name="graphicsView_status">

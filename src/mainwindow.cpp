@@ -24,13 +24,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tableWidget->horizontalHeaderItem(1)->setTextAlignment(Qt::AlignCenter);
     ui->tableWidget->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignCenter);
 
+    plot = new MinerPlot(ui->widget_cur);
+//    plot->setTitle("History");
+    const int margin = 5;
+    plot->setContentsMargins(margin, margin, margin, margin);
+    QVBoxLayout *layout = new QVBoxLayout(ui->widget_cur);
+    layout->addWidget(plot);
+
     connect(ui->pushButton_start, SIGNAL(clicked()), this, SLOT(runClicked()));
     connect(ui->pushButton_save, SIGNAL(clicked()), this, SLOT(saveClicked()));
+    connect(this, SIGNAL(addPlotValue(plotInfo)), plot, SIGNAL(addPlotValue(plotInfo)));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete plot;
 }
 
 void MainWindow::runClicked()
@@ -63,6 +72,8 @@ void MainWindow::processFinished()
         ui->tableWidget->setItem(i, 1, new QTableWidgetItem(""));
         ui->tableWidget->setItem(i, 2, new QTableWidgetItem(""));
     }
+
+    plot->clearCurve();
 }
 
 void MainWindow::updateInfo(minerInfo miner)

@@ -6,6 +6,7 @@
 
 QT       += core gui network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+CONFIG   += qwt
 
 CONFIG   += warn_on release
 CONFIG(debug, debug|release){
@@ -31,13 +32,17 @@ SOURCES += main.cpp\
     mainwindow.cpp \
     minerconfig.cpp \
     bfgminer.cpp \
-    rpcthread.cpp
+    rpcthread.cpp \
+    minerplot.cpp \
+    minerstat.cpp
 
 HEADERS  += mainwindow.h \
     minerconfig.h \
     bfgminer.h \
     bfgconf.h \
-    rpcthread.h
+    rpcthread.h \
+    minerplot.h \
+    minerstat.h
 
 FORMS    += mainwindow.ui
 

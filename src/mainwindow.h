@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "bfgconf.h"
+#include "minerplot.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +20,7 @@ public:
 signals:
     void saveConf(bfgConf *);
     void runProcess(bool);
+    void addPlotValue(const plotInfo &);
 
 public slots:
     void confChanged(bfgConf *);
@@ -31,6 +33,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     bool processStatus; /* true for started, false for not running */
+    MinerPlot *plot;
 
 private slots:
     void saveClicked();

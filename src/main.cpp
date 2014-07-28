@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     RpcThread rpc;
 
     qRegisterMetaType<minerInfo>("minerInfo");
+    qRegisterMetaType<plotInfo>("plotInfo");
 
     QObject::connect(&minerConfig, SIGNAL(confLoaded(bfgConf*)), &w, SLOT(confChanged(bfgConf*)));
     QObject::connect(&minerConfig, SIGNAL(confSaved(bfgConf*)), &w, SLOT(confSaved()));
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
     QObject::connect(&bfg, SIGNAL(finished(int,QProcess::ExitStatus)), &rpc, SLOT(stop()));
     QObject::connect(&rpc, SIGNAL(newInfo(minerInfo)), &w, SLOT(updateInfo(minerInfo)));
     QObject::connect(&rpc, SIGNAL(rpcConnected()), &w, SLOT(rpcConnected()));
+    QObject::connect(&rpc, SIGNAL(newValue(plotInfo)), &w, SIGNAL(addPlotValue(plotInfo)));
     minerConfig.load();
     w.show();
 
