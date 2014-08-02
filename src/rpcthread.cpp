@@ -16,7 +16,7 @@ RpcThread::~RpcThread()
 
 bool RpcThread::callApi(const char *command)
 {
-    qDebug() << "Call bfgminer RPC with command : " + QString(command);
+//    qDebug() << "Call bfgminer RPC with command : " + QString(command);
     const int Timeout = 300; //1 * 1000;
 
     QTcpSocket socket;
@@ -79,7 +79,9 @@ void RpcThread::run()
         if (quit)
             break;
         emit newInfo(miner);
-        for (int i = 0; i < 25; i ++) {
+        /* sleep 5 seconds (25 * 200) ==> sleep 1 second (5 * 200) */
+//        for (int i = 0; i < 25; i ++) {
+        for (int i = 0; i < 5; i ++) {
             msleep(200);
             if (quit)
                 break;
@@ -174,28 +176,60 @@ QString RpcThread::getBfgValue(const QString &first, const QString &second)
     return QString("");
 }
 
+void RpcThread::addToPlot(bool isPlot, plotInfo plotValue)
+{
+    if (!isPlot) {
+        qDebug() << "ERROR, we should not plot";
+        return;
+    }
+//    qDebug() << "plotValue when=" + QString::number(plotValue.when);
+//    qDebug() << "plotValue 20s=" + QString::number(plotValue.hashrate_20s);
+//    qDebug() << "plotValue av=" + QString::number(plotValue.hashrate_av);
+//    qDebug() << "plotValue cur=" + QString::number(plotValue.hashrate_cur);
+    emit newValue(plotValue);
+}
+
 void RpcThread::parseSummary()
 {
     mutex.lock();
+    QString When = getBfgValue("When");
     QString MHS_av = getBfgValue("MHS av");
     QString MHS_20s = getBfgValue("MHS 20s");
     mutex.unlock();
 
     bool ok;
+    bool isPlot = true;
+    plotInfo plotValue;
+
+    qint64 value64 = When.toLongLong(&ok);
+    if (ok) {
+        plotValue.when = value64 * 1000;
+        miner.when = QDateTime::fromMSecsSinceEpoch(plotValue.when).toString("yyyy-MM-dd hh:mm:ss");
+    } else {
+        qDebug() << "when = () [convert when failed]";
+        miner.when = QString();
+        isPlot = false;
+    }
+//    qDebug() << "When = " + miner.when;
+
     double value = MHS_av.toDouble(&ok);
     if (ok) {
-        miner.hashrate_av = QString::number(value / 1000.0, 'f', 3);
+        plotValue.value[value_av] = value / 1000.0;
+        miner.hashrate_av = QString::number(plotValue.value[value_av], 'f', 3);
     } else {
         qDebug() << "GHS av = 0 [convert av failed]";
+        plotValue.value[value_av] = 0;
         miner.hashrate_av = QString("0");
     }
 //    qDebug() << "GHS av = " + miner.hashrate_av;
 
     value = MHS_20s.toDouble(&ok);
     if (ok) {
-        miner.hashrate_20s = QString::number(value / 1000., 'f', 3);
+        plotValue.value[value_20s] = value / 1000.0;
+        miner.hashrate_20s = QString::number(plotValue.value[value_20s], 'f', 3);
     } else {
         qDebug() << "GHS av = 0 [convert 20s failed]";
+        plotValue.value[value_20s] = 0;
         miner.hashrate_20s = QString("0");
     }
 //    qDebug() << "GHS 20s = " + miner.hashrate_20s;
@@ -215,8 +249,9 @@ void RpcThread::parseSummary()
 //    qDebug() << "Elapsed=" + Elapsed;
     if (Diff1_Work.isEmpty() || Difficulty_Accepted.isEmpty() || Difficulty_Rejected.isEmpty() || Difficulty_Stale.isEmpty() || Elapsed.isEmpty()) {
         qDebug() << "GHS cur = 0 [String for CUR is empty]";
+        plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
-        return;
+        return addToPlot(isPlot, plotValue);
     }
     bool ok_Diff1_Work, ok_Difficulty_Accepted, ok_Difficulty_Rejected, ok_Difficulty_Stale, ok_Elapsed;
     double val_Diff1_Work = Diff1_Work.toDouble(&ok_Diff1_Work);
@@ -226,17 +261,21 @@ void RpcThread::parseSummary()
     double val_Elapsed = Elapsed.toDouble(&ok_Elapsed);
     if (!(ok_Diff1_Work && ok_Difficulty_Accepted && ok_Difficulty_Rejected && ok_Difficulty_Stale && ok_Elapsed)) {
         qDebug() << "GHS cur = 0 [Convert vale for CUR failed]";
+        plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
-        return;
+        return addToPlot(isPlot, plotValue);
     }
     if (((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0) || (val_Elapsed == 0)) {
         qDebug() << "GHS cur = 0 [Divided by ZERO]";
+        plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
-        return;
+        return addToPlot(isPlot, plotValue);
     }
     value = val_Diff1_Work / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) * 60 / val_Elapsed * 71582788 / 1000000 / 1000;
-    miner.hashrate_cur = QString::number(value, 'f', 3);
+    plotValue.value[value_cur] = value;
+    miner.hashrate_cur = QString::number(plotValue.value[value_cur], 'f', 3);
 //    qDebug() << "GHS cur = " + miner.hashrate_cur;
+    return addToPlot(isPlot, plotValue);
 }
 
 void RpcThread::parsePools()

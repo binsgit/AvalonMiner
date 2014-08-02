@@ -19,6 +19,7 @@ signals:
     void rpcConnected();
     void newInfo(const minerInfo &);
 //    void error(int socketError, const QString &message);
+    void newValue(const plotInfo &);
 
 public slots:
     void request();
@@ -33,6 +34,7 @@ private:
     QString buffer;
     minerInfo miner;
     bool callApi(const char *);
+    void addToPlot(bool, plotInfo);
     void parseSummary();
     void parsePools();
     QString getBfgValue(const char *);
