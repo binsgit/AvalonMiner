@@ -265,7 +265,7 @@ void RpcThread::parseSummary()
         miner.hashrate_cur = QString("0");
         return addToPlot(isPlot, plotValue);
     }
-    if (((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0) || (val_Elapsed == 0)) {
+    if ((val_Difficulty_Accepted == 0) || ((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0) || (val_Elapsed == 0)) {
         qDebug() << "GHS cur = 0 [Divided by ZERO]";
         plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
