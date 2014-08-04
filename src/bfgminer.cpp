@@ -8,7 +8,11 @@ BFGMiner::BFGMiner(QObject *parent) :
     QObject(parent)
 {
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+#ifdef Q_OS_WIN
     env.insert("PATH", QString(qApp->applicationDirPath() + "/bfgminer;C:/Windows/System32;C:/Windows;"));
+#else
+    env.insert("LD_LIBRARY_PATH", QString(qApp->applicationDirPath() + "/bfgminer"));
+#endif
     process.setProcessEnvironment(env);
 //    process.setWorkingDirectory(qApp->applicationDirPath() + "/bfgminer");
     process.setWorkingDirectory(qApp->applicationDirPath());
@@ -34,8 +38,11 @@ void BFGMiner::run(bool action)
     }
 
     /* Start */
+#ifdef Q_OS_WIN
     QFile bfgFile(QString(qApp->applicationDirPath() + "/bfgminer/bfgminer.exe"));
-//    QFile bfgFile(QString(qApp->applicationDirPath() + "/mytest.exe"));
+#else
+    QFile bfgFile(QString(qApp->applicationDirPath() + "/bfgminer/bfgminer"));
+#endif
     if (!bfgFile.exists()) {
         QMessageBox messageBox;
         qCritical("ERROR: File not found: %s", QString(bfgFile.fileName()).toLocal8Bit().data());
