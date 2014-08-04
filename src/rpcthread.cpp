@@ -228,7 +228,7 @@ void RpcThread::parseSummary()
         plotValue.value[value_20s] = value / 1000.0;
         miner.hashrate_20s = QString::number(plotValue.value[value_20s], 'f', 3);
     } else {
-        qDebug() << "GHS av = 0 [convert 20s failed]";
+        qDebug() << "GHS 20s = 0 [convert 20s failed]";
         plotValue.value[value_20s] = 0;
         miner.hashrate_20s = QString("0");
     }
@@ -271,7 +271,7 @@ void RpcThread::parseSummary()
         miner.hashrate_cur = QString("0");
         return addToPlot(isPlot, plotValue);
     }
-    value = val_Diff1_Work / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) * 60 / val_Elapsed * 71582788 / 1000000 / 1000;
+    value = val_Diff1_Work / (val_Difficulty_Accepted / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale)) * 60 / val_Elapsed * 71582788 / 1000000 / 1000.0;
     plotValue.value[value_cur] = value;
     miner.hashrate_cur = QString::number(plotValue.value[value_cur], 'f', 3);
 //    qDebug() << "GHS cur = " + miner.hashrate_cur;
