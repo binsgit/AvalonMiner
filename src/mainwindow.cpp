@@ -3,6 +3,7 @@
 #include "bfgconf.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,11 +45,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::runClicked()
 {
-    emit runProcess(!processStatus);
+    if (serialPara.isEmpty()) {
+        QMessageBox::critical(this, tr("Avalon Miner"), tr("No Avalon Nano detected!\t\n"), QMessageBox::Ok);
+    } else {
+        emit runProcess(!processStatus, serialPara);
+    }
 }
 
 void MainWindow::processStarted()
 {
+    qCritical() << "bfgminer process started.";
     processStatus = true;
     ui->label_status->setText("PREPARING");
     ui->graphicsView_status->setStyleSheet("background-image: url(:/images/workingbg.png)");
@@ -58,6 +64,7 @@ void MainWindow::processStarted()
 
 void MainWindow::processFinished()
 {
+    qCritical() << "bfgminer process has been finished.";
     processStatus = false;
     ui->label_status->setText("NOT MINING");
     ui->graphicsView_status->setStyleSheet("background-image: url(:/images/notworkingbg.png)");
@@ -137,5 +144,25 @@ void MainWindow::confSaved()
     QMessageBox msgBox;
     msgBox.setText("Configuration has been saved.");
     msgBox.exec();
-//    messageBox.information(0, "OK", "Configuration has been saved.");
+}
+
+void MainWindow::serialReady(QStringList para)
+{
+    if ((!para.isEmpty()) && (serialPara == para))
+        return;
+
+    if (processStatus == true) {
+        qCritical() << "Serial ports changed during bfgminer is running. Kill bfgminer now!";
+        emit runProcess(!processStatus, serialPara);
+    }
+
+    serialPara = para;
+
+    if (para.size() == 0) {
+        qCritical() << "Serial port is empty, no Avalon Nano detected!";
+        QMessageBox::critical(this, tr("Avalon Miner"), tr("No Avalon Nano detected!\t\n"), QMessageBox::Ok);
+        return;
+    } else {
+        QTimer::singleShot(1000, this, SLOT(runClicked()));
+    }
 }

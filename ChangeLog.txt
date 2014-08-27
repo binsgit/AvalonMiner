@@ -1,0 +1,19 @@
+20140827
+1. Support Qt5 only, Windows only
+2. Detect Avalon Nano and update bfgminer process automatically
+3. Kill bfgminer.exe process as soon as application starts up
+4. Single instance only
+5. Log file support
+
+20140808
+1. Bug Fix: CUR calculation
+
+20140728
+1. Add curve display for current (CUR) hashrate
+
+20140614
+1. Add CUR hashrate support, with PREPARING display before RPC connected
+
+20140612
+1. First release
+

@@ -18,7 +18,7 @@ signals:
     void finished(int, QProcess::ExitStatus);
 
 public slots:
-    void run(bool);
+    void run(bool, QStringList);
     void confChanged(bfgConf *);
     void readStdOutput();
     void readStdError();

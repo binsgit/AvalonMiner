@@ -7,6 +7,19 @@
 BFGMiner::BFGMiner(QObject *parent) :
     QObject(parent)
 {
+#ifdef Q_OS_WIN
+    QProcess tasklist;
+    tasklist.start("tasklist", QStringList() << "/NH" << "/FO" << "CSV" << "/FI" << QString("IMAGENAME eq bfgminer.exe"));
+    tasklist.waitForFinished(3*1000);
+    QString output = tasklist.readAllStandardOutput().toLower().simplified();
+    if (output.startsWith("\"bfgminer.exe")) {
+        QProcess p;
+        qCritical("bfgminer found, I'm going to kill: %s", output.toLocal8Bit().data());
+        p.start("taskkill /F /IM bfgminer.exe");
+        p.waitForFinished(3*1000);
+    }
+#endif
+
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 #ifdef Q_OS_WIN
     env.insert("PATH", QString(qApp->applicationDirPath() + "/bfgminer;C:/Windows/System32;C:/Windows;"));
@@ -14,7 +27,6 @@ BFGMiner::BFGMiner(QObject *parent) :
     env.insert("LD_LIBRARY_PATH", QString(qApp->applicationDirPath() + "/bfgminer"));
 #endif
     process.setProcessEnvironment(env);
-//    process.setWorkingDirectory(qApp->applicationDirPath() + "/bfgminer");
     process.setWorkingDirectory(qApp->applicationDirPath());
 
     connect(&process, SIGNAL(started()), this, SIGNAL(started()));
@@ -29,10 +41,12 @@ BFGMiner::~BFGMiner()
 
 }
 
-void BFGMiner::run(bool action)
+/* action: true == start, false == stop */
+void BFGMiner::run(bool action, QStringList serialPara)
 {
     /* Stop */
     if (!action) {
+        qCritical() << "Kill bfgminer process!";
         process.kill();
         return;
     }
@@ -50,7 +64,8 @@ void BFGMiner::run(bool action)
 //        qApp->quit();
         return;
     }
-    process.start(bfgFile.fileName(), para);
+    qCritical() << "Starting process with para = " << serialPara + para;
+    process.start(bfgFile.fileName(), serialPara + para);
 }
 
 void BFGMiner::confChanged(bfgConf *bfgConfig)
@@ -63,7 +78,7 @@ void BFGMiner::confChanged(bfgConf *bfgConfig)
     }
     para += bfgConfig->para;
     para += QStringList("--log-file") + QStringList(bfgConfig->log);
-    qDebug() << para;
+    qCritical() << "Parameter has been changed to: " << para;
 }
 
 void BFGMiner::readStdOutput()

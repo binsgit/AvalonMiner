@@ -5,7 +5,9 @@
 #-------------------------------------------------
 
 QT       += core gui network
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+isEqual(QT_MAJOR_VERSION, 4): CONFIG += serialport
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport
+
 CONFIG   += qwt
 
 CONFIG   += warn_on release
@@ -34,7 +36,8 @@ SOURCES += main.cpp\
     bfgminer.cpp \
     rpcthread.cpp \
     minerplot.cpp \
-    minerstat.cpp
+    minerstat.cpp \
+    serialwatch.cpp
 
 HEADERS  += mainwindow.h \
     minerconfig.h \
@@ -42,7 +45,8 @@ HEADERS  += mainwindow.h \
     bfgconf.h \
     rpcthread.h \
     minerplot.h \
-    minerstat.h
+    minerstat.h \
+    serialwatch.h
 
 FORMS    += mainwindow.ui
 

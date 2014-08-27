@@ -6,6 +6,7 @@ MinerConfig::MinerConfig(QObject *parent) :
     QObject(parent)
 {
     settings = new QSettings(qApp->applicationDirPath() + "/avalon.ini", QSettings::IniFormat);
+    connect(&watcher, SIGNAL(changed(QStringList)), this, SLOT(serialChanged(QStringList)));
 }
 
 MinerConfig::~MinerConfig()
@@ -42,8 +43,8 @@ void MinerConfig::load()
         settings->setValue(QString("PoolInfo_%1/WorkerName").arg(QString::number(i+1)), bfgConfig.info[i].name);
         settings->setValue(QString("PoolInfo_%1/WorkerPassword").arg(QString::number(i+1)), bfgConfig.info[i].pass);
     }
-    bfgConfig.log = settings->value(QString("Avalon/Log"), "avalon.log").toString();
-    QStringList para_default = QString("-T -S ICA:/dev/ttyACM0 --set-device ICA:baud=115200 --set-device ICA:reopen=timeout --set-device ICA:work_division=1 --set-device ICA:fpga_count=1 --set-device ICA:probe_timeout=100 --set-device ICA:timing=0.22 --api-listen").split(" ");
+    bfgConfig.log = settings->value(QString("Avalon/Log"), "bfgminer.log").toString();
+    QStringList para_default = QString("-T --set-device ICA:baud=115200 --set-device ICA:reopen=timeout --set-device ICA:work_division=1 --set-device ICA:fpga_count=1 --set-device ICA:probe_timeout=100 --set-device ICA:timing=0.22 --api-listen").split(" ");
     bfgConfig.para = settings->value(QString("Avalon/Parameters"), para_default).toStringList();
     settings->setValue(QString("Avalon/Log"), bfgConfig.log);
     settings->setValue(QString("Avalon/Parameters"), bfgConfig.para);
@@ -71,4 +72,19 @@ void MinerConfig::load(bfgConf *conf)
     settings->setValue(QString("Avalon/Parameters"), bfgConfig.para);
     settings->sync();
     emit confSaved(&bfgConfig);
+}
+
+void MinerConfig::serialChanged(const QStringList &ports)
+{
+    QStringList para;
+    for (int i = 0; i < ports.size(); i ++) {
+        para.append("-S");
+        para.append("ICA:\\\\.\\" + ports.at(i));
+    }
+    emit serialPara(para);
+}
+
+void MinerConfig::watcherStart()
+{
+    watcher.start();
 }

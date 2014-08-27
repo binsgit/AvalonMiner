@@ -19,7 +19,7 @@ public:
 
 signals:
     void saveConf(bfgConf *);
-    void runProcess(bool);
+    void runProcess(bool, const QStringList &);
     void addPlotValue(const plotInfo &);
 
 public slots:
@@ -29,11 +29,13 @@ public slots:
     void processFinished();
     void updateInfo(minerInfo);
     void rpcConnected();
+    void serialReady(QStringList);
 
 private:
     Ui::MainWindow *ui;
     bool processStatus; /* true for started, false for not running */
     MinerPlot *plot;
+    QStringList serialPara;
 
 private slots:
     void saveClicked();

@@ -23,20 +23,35 @@ bool RpcThread::callApi(const char *command)
     socket.connectToHost(serverName, serverPort);
 
     if (!socket.waitForConnected(Timeout)) {
-        qDebug() << "socket connect error: " + socket.errorString();
+        static qint64 i = 0;
+        /* Log it every 10 seconds */
+        if (QDateTime::currentMSecsSinceEpoch() >= i + (10 * 1000)) {
+            qCritical() << "socket connect error: " + socket.errorString();
+            i = QDateTime::currentMSecsSinceEpoch();
+        }
 //        emit error(socket.error(), socket.errorString());
         return false;
     }
     emit rpcConnected();
 
     if (socket.write(command) != QString(command).length()) {
-        qDebug() << "socket write error.";
+        static qint64 j = 0;
+        /* Log it every 10 seconds */
+        if (QDateTime::currentMSecsSinceEpoch() >= j + (10 * 1000)) {
+            qCritical() << "RPC socket write error.";
+            j = QDateTime::currentMSecsSinceEpoch();
+        }
         return false;
     }
 
     while (socket.bytesAvailable() < (int)sizeof(quint16)) {
         if (!socket.waitForReadyRead(Timeout)) {
-            qDebug() << "socket read error: " + socket.errorString();
+        static qint64 k = 0;
+        /* Log it every 10 seconds */
+        if (QDateTime::currentMSecsSinceEpoch() >= k + (10 * 1000)) {
+            qCritical() << "RPC socket read error: " + socket.errorString();
+            k = QDateTime::currentMSecsSinceEpoch();
+        }
 //            emit error(socket.error(), socket.errorString());
             return false;
         }
@@ -179,7 +194,7 @@ QString RpcThread::getBfgValue(const QString &first, const QString &second)
 void RpcThread::addToPlot(bool isPlot, plotInfo plotValue)
 {
     if (!isPlot) {
-        qDebug() << "ERROR, we should not plot";
+        qCritical() << "ERROR, we should not plot";
         return;
     }
 //    qDebug() << "plotValue when=" + QString::number(plotValue.when);
@@ -206,7 +221,7 @@ void RpcThread::parseSummary()
         plotValue.when = value64 * 1000;
         miner.when = QDateTime::fromMSecsSinceEpoch(plotValue.when).toString("yyyy-MM-dd hh:mm:ss");
     } else {
-        qDebug() << "when = () [convert when failed]";
+//        qCritical() << "when = () [convert when failed]";
         miner.when = QString();
         isPlot = false;
     }
@@ -217,7 +232,7 @@ void RpcThread::parseSummary()
         plotValue.value[value_av] = value / 1000.0;
         miner.hashrate_av = QString::number(plotValue.value[value_av], 'f', 3);
     } else {
-        qDebug() << "GHS av = 0 [convert av failed]";
+//        qCritical() << "GHS av = 0 [convert av failed]";
         plotValue.value[value_av] = 0;
         miner.hashrate_av = QString("0");
     }
@@ -228,7 +243,7 @@ void RpcThread::parseSummary()
         plotValue.value[value_20s] = value / 1000.0;
         miner.hashrate_20s = QString::number(plotValue.value[value_20s], 'f', 3);
     } else {
-        qDebug() << "GHS 20s = 0 [convert 20s failed]";
+//        qCritical() << "GHS 20s = 0 [convert 20s failed]";
         plotValue.value[value_20s] = 0;
         miner.hashrate_20s = QString("0");
     }
@@ -248,7 +263,7 @@ void RpcThread::parseSummary()
 //    qDebug() << "Difficulty_Stale=" + Difficulty_Stale;
 //    qDebug() << "Elapsed=" + Elapsed;
     if (Diff1_Work.isEmpty() || Difficulty_Accepted.isEmpty() || Difficulty_Rejected.isEmpty() || Difficulty_Stale.isEmpty() || Elapsed.isEmpty()) {
-        qDebug() << "GHS cur = 0 [String for CUR is empty]";
+//        qDebug() << "GHS cur = 0 [String for CUR is empty]";
         plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
         return addToPlot(isPlot, plotValue);
@@ -260,20 +275,20 @@ void RpcThread::parseSummary()
     double val_Difficulty_Stale = Difficulty_Stale.toDouble(&ok_Difficulty_Stale);
     double val_Elapsed = Elapsed.toDouble(&ok_Elapsed);
     if (!(ok_Diff1_Work && ok_Difficulty_Accepted && ok_Difficulty_Rejected && ok_Difficulty_Stale && ok_Elapsed)) {
-        qDebug() << "GHS cur = 0 [Convert vale for CUR failed]";
+//        qCritical() << "GHS cur = 0 [Convert vale for CUR failed]";
         plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
         return addToPlot(isPlot, plotValue);
     }
     //if ((val_Difficulty_Accepted == 0) || ((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0) || (val_Elapsed == 0)) {
     if (val_Elapsed == 0) {
-        qDebug() << "GHS cur = 0 [Divided by ZERO]";
+//        qCritical() << "GHS cur = 0 [Divided by ZERO]";
         plotValue.value[value_cur] = 0;
         miner.hashrate_cur = QString("0");
         return addToPlot(isPlot, plotValue);
     }
     if ((val_Difficulty_Accepted == 0) && ((val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale) == 0)) {
-        qDebug() << "GHS cur: Difficulty Accepted/Rejected/Stale = 0";
+//        qDebug() << "GHS cur: Difficulty Accepted/Rejected/Stale = 0";
         val_Difficulty_Accepted = 1;
     }
     value = val_Diff1_Work / (val_Difficulty_Accepted / (val_Difficulty_Accepted + val_Difficulty_Rejected + val_Difficulty_Stale)) * 60 / val_Elapsed * 71582788 / 1000000 / 1000.0;
@@ -298,7 +313,7 @@ void RpcThread::parsePools()
         if (ok && (value != 0)) {
             miner.lastCommit[i] = QDateTime::fromTime_t(value).toString("HH:mm:ss");
         } else {
-            qDebug() << "Last Commit =  [convert time failed]";
+//            qDebug() << "Last Commit =  [convert time failed]";
             miner.lastCommit[i] = QString("");
         }
 
